@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
+  "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" version="XHTML+RDFa 1.0" dir="ltr"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/terms/"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:og="http://ogp.me/ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:sioc="http://rdfs.org/sioc/ns#"
+  xmlns:sioct="http://rdfs.org/sioc/types#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+
+<body>
+<h1>How to Deploy HTTPS Correctly</h1>
+<div class="content">
+<div class="field field-name-body field-type-text-with-summary field-label-hidden"><div class="field-items"><div class="field-item even" property="content:encoded"><p><a href="/about/staff/chris-palmer">Chris Palmer</a>, 15 Nov 2010</p>
+<p>Internet technologists have long known that HTTP is insecure, causing many risks to users. The release of <a href="http://codebutler.com/firesheep-a-day-later">Firesheep</a> made one of these risks concrete and obvious to even non-technical folks.</p>
+<p>While HTTPS has long existed as a reasonable way to improve web security, web operators have been slow to host their applications with it. In part, this is because correctly and completely hosting an application with HTTPS takes some care.</p>
+<p>This article is designed to help web operators get a conceptual handle on how to protect their users with HTTPS. Taking a little bit of care to protect your users is a reasonable thing for web application providers to do, and a good thing for users to demand.</p>
+<h2>Background</h2>
+<p>HTTPS provides three security guarantees:</p>
+<ol><li><strong>Server authentication</strong> allows the browser and the user to have some confidence that they are talking to the true application server. Without this guarantee, there can be no guarantee of confidentiality or integrity.</li>
+<li><strong>Data confidentiality</strong> means that eavesdroppers cannot understand the communications between the user’s browser and the web server, because the data is encrypted.</li>
+<li><strong>Data integrity</strong> means that a network attacker cannot damage or alter the content of the communications between the user’s browser and the web server, because they are validated with a cryptographic <em><a href="https://secure.wikimedia.org/wikipedia/en/wiki/Message_authentication_code">message authentication code</a></em>.</li>
+</ol><p><strong>HTTP provides no security guarantees</strong>, and applications that use it <strong>cannot possibly provide users any security</strong>. When using a web application hosted via HTTP, people have no way of knowing whether or not they are talking to the true application server, nor can they be sure attackers have not read or modified communications between the user’s computer and the server.</p>
+<h2>Modes of Attack and Defense</h2>
+<p>However users connect to the Internet, there are a variety of people who can attack them—whether spying on them, impersonating them, tampering with their communications, or all three of these. The wifi network operator can do this; any ISP in the path between client and server can do it; anyone who can reconfigure the wifi router or another router can do it; and often, anyone else using the same network can do it, too.</p>
+<p>Firesheep is a <em>passive network attack</em>: it eavesdrops on the contents of network communications between browser and server, but does not re-route or modify them.</p>
+<p>By contrast, other freely-available tools perform <em>active network attacks</em>, in which the attacker does modify the contents of and/or re-route communications. These tools range from serious, such as <a href="http://www.thoughtcrime.org/software/sslstrip/">sslstrip</a>, to silly, like <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html">the Upside-Down-Ternet</a>. Although Upside-Down-Ternet is a funny prank, it is technically identical to potentially more damaging attacks such as an attack that injects malicious code or incorrect information into web pages; at the same time, it shows that such attacks are easy enough to be jokes. Free wifi hotspots have been known to inject advertisements dynamically into web pages that users read—indicating that active network attacks are a viable business model. Tools like <a href="http://www.oxid.it/cain.html">Cain and Abel</a> enable a range of attacks, including re-routing local network traffic through the attacker's system. (Also see <a href="http://arpspoof.sourceforge.net/">Arpspoof</a> and <a href="http://www.monkey.org/~dugsong/dsniff/">dsniff</a>.)</p>
+<p>Only a mechanism that provides (at least) authentication, confidentiality, and integrity can defend against the full range of both passive and active attacks. HTTPS is currently our best option for web applications.</p>
+<p>However, there are some potential pitfalls that site operators must avoid.</p>
+<h2>Mixed Content</h2>
+<p>When hosting an application over HTTPS, there can be no <em>mixed content</em>; that is, all content in the page must be fetched via HTTPS. It is common to see partial HTTPS support on sites, in which the main pages are fetched via HTTPS but some or all of the media elements, stylesheets, and JavaScript in the page are fetched via HTTP.</p>
+<p>This is unsafe because although the main page load is protected against active and passive network attack, none of the other resources are. If a page loads some JavaScript or CSS code via HTTP, an attacker can provide a false, malicious code file and take over the page’s DOM once it loads. Then, the user would be back to a situation of having no security. This is why all mainstream browsers warn users about pages that load mixed content. Nor is it safe to reference images via HTTP: What if the attacker swapped the Save Message and Delete Message icons in a webmail app?</p>
+<p><strong>You must serve the entire application domain over HTTPS.</strong> Redirect HTTP requests with HTTP 301 or 302 responses to the equivalent HTTPS resource.</p>
+<p>Some site operators provide only the login page over HTTPS, on the theory that only the user’s password is sensitive. These sites’ users are <a href="/deeplinks/2010/10/message-firesheep-baaaad-websites-implement">vulnerable to passive and active attack</a>.</p>
+<h2>Security and Cookies</h2>
+<p>As I described in a <a href="https://www.isecpartners.com/files/web-session-management.pdf">paper on secure session management for web applications</a>, site operators must scope sensitive cookies (such as cookies used for user authentication) to the secure origin. If a cookie is broadly scoped (with the Domain attribute in the Set-Cookie: header), it may “leak” to other hosts or applications in the same domain—potentially less-secure hosts or applications.</p>
+<p>Similarly, the application must set the Secure attribute on the cookie when setting it. This attribute instructs the browser to send the cookie only over secure (HTTPS) transport, never insecure (HTTP).</p>
+<h2>Use HTTP Strict Transport Security</h2>
+<p><a href="https://en.wikipedia.org/wiki/Strict_Transport_Security"> HTTP Strict Transport Security</a> (HSTS) is an HTTP protocol extension that enables site operators to instruct browsers to expect the site to use HTTPS.</p>
+<p>Although not all browsers yet support HSTS, EFF urges those that don’t—we’re looking especially at you, Apple and Microsoft—to follow the lead Google and Mozilla have set by adopting this useful security mechanism. Indeed, ultimately we expect HTTPS (and possibly <a href="https://secure.wikimedia.org/wikipedia/en/wiki/SPDY">SPDY</a>) to replace HTTP entirely, the way SSH replaced Telnet and rsh.</p>
+<p>We recently enabled HSTS for eff.org. It took less than an hour to set up, and we found a way to do it without forcibly redirecting users to HTTPS, so we can state an unequivocal preference for HTTPS access while still making the site available in HTTP. It worked like a charm and a significant fraction of our users are now automatically accessing our site in HTTPS, perhaps without even knowing it.</p>
+<h2>Performance Concerns</h2>
+<p>Many site operators report that they can’t move to HTTPS for performance reasons. However, most people who say this have not actually measured any performance loss, may not have measured performance at all, and have not profiled and optimized their site’s behavior. Usually, sites have latency far higher and/or throughput far lower than necessary even when hosting over HTTP—indicating HTTPS is not the problem.</p>
+<p>The crux of the performance problem is usually at the content layer, and also often at the database layer. Web applications are fundamentally I/O-bound, after all. Consider <a href="http://gmailblog.blogspot.com/2008/05/need-for-speed-path-to-faster-loading.html">this wisdom from the Gmail developers</a>:</p>
+<blockquote><p>First, we listed every transaction between the web browser and Google’s servers, starting with the moment the “Sign in” button is pressed. To do this, we used a lot of different web development tools, like <a href="http://httpwatch.com/">Httpwatch</a>, <a href="http://www.wireshark.org/">WireShark</a>, and <a href="http://www.fiddlertool.com/fiddler/">Fiddler</a>, plus our own performance measuring systems. [...]</p>
+<p>We spent hours poring over these traces to see exactly what was happening between the browser and Gmail during the sign-in sequence, and we found that there were between fourteen and twenty-four HTTP requests required to load an inbox and display it. To put these numbers in perspective, a popular network news site’s home page required about a 180 requests to fully load when I checked it yesterday. But when we examined our requests, we realized that we could do better. We decided to attack the problem from several directions at once: reduce the number of overall requests, make more of the requests cacheable by the browser, and reduce the overhead of each request.</p>
+<p>We made good progress on every front. We reduced the weight of each request itself by eliminating or narrowing the scope of some of our cookies. We made sure that all our images were cacheable by the browser, and we consolidated small icon images into single meta-images, a technique known as spriting. We combined several requests into a single combined request and response. The result is that it now takes as few as four requests from the click of the “Sign in” button to the display of your inbox.</p>
+</blockquote>
+<p>Google’s <a href="http://www.imperialviolet.org/2010/06/25/overclocking-ssl.html">Adam Langley provides additional detail</a>:</p>
+<blockquote><p>In order to do this we had to deploy <em>no additional machines</em> and <em>no special hardware</em>. On our production frontend machines, SSL/TLS accounts for less than 1% of the CPU load, less than 10KB of memory per connection and less than 2% of network overhead. Many people believe that SSL takes a lot of CPU time and we hope the above numbers (public for the first time) will help to dispel that. [emphasis in original]</p>
+</blockquote>
+<p>Is it any wonder Gmail performs well, even when using HTTPS exclusively? Site operators can realize incremental improvement by gradually tuning their web applications. I gave a presentation to this effect at <a href="http://assets.en.oreilly.com/1/event/22/High%20Performance,%20Low%20Cost,%20and%20Strong%20Security_%20Pick%20Any%20Three%20Presentation.pdf">Web 2.0 Expo 2009</a>.</p>
+<h2>Conclusion</h2>
+<p>HTTPS provides the baseline of safety for web application users, and there is no performance- or cost-based reason to stick with HTTP. Web application providers <a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=1421553">undermine their business models</a> when, by continuing to use HTTP, they enable a wide range of attackers anywhere on the internet to compromise users’ information.</p>
+<h2>More to Come</h2>
+<p>Keep an eye out for Part Two of this whitepaper, which will go into more detail about how site operators can easily and incrementally improve site efficiency, thus enabling the move to HTTPS.</p>
+
+</div></div></div></div>
+</body>
+</html>
