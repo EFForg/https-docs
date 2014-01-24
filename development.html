@@ -1,0 +1,54 @@
+<html>
+<title>HTTPS Everywhere Development</title>
+<body>
+<h3>Pointers for developers</h3>
+<ul><li><b>License:</b> GPL version 3+ (although most of the code is GPL-2 compatible)</li>
+<li><b>Source code:</b> Available via Git with<br /><i>git clone https://git.torproject.org/https-everywhere.git</i> or browse the source via <a href="https://gitweb.torproject.org/https-everywhere.git">gitweb</a>. You can fork and open pull requests using Github at <a href="https://github.com/EFForg/https-everywhere">https://github.com/EFForg/https-everywhere</a>.</li>
+<li><b>Translations:</b> If you would like to help translate HTTPS Everywhere into another language, you can do that <a href="https://www.transifex.com/projects/p/torproject/resources/">through Transifex</a>.</li>
+<li><b>Bug tracker:</b> <a href="https://trac.torproject.org/projects/tor/report/19">https://trac.torproject.org/projects/tor/report/19</a> (to submit bugs, make an account or use the anonymous one — "cypherpunks"/"writecode", though you won't see replies unless you put an email address in the CC field). Bugs that are caused by rulesets should be tagged "httpse-ruleset-bug", and can be viewed <a href="https://trac.torproject.org/projects/tor/report/48">in this report</a>. Alternatively, you can open issues at the Github link above.</li>
+<li><b>Mailing lists:</b> The <a href="https://lists.eff.org/mailman/listinfo/https-everywhere">https-everywhere</a> list (<a href="https://lists.eff.org/pipermail/https-everywhere/">archives</a>) is for discussing the project as a whole; the <a href="https://lists.eff.org/mailman/listinfo/https-everywhere-rules">https-everywhere-rules</a> mailing list (<a href="https://lists.eff.org/pipermail/https-everywhere-rules">archives</a>) is for discussing the <a href="/https-everywhere/rulesets">rulesets</a> and their contents, including patches and git pull requests.</li>
+<li><b>IRC:</b> #https-everywhere on irc.oftc.net. If you ask a question, be sure to stay in the channel — someone may reply a few hours or a few days later.</li>
+<li><b>Adding support for new sites:</b> the rulesets are documented <a href="/https-everywhere/rulesets">here</a>.</li>
+</ul><p><a name="git" id="git"></a></p>
+<h2>Testing and contributing changes to the source code</h2>
+<p>Please work off of the "3.0" branch if you're submitting changes to the latest stable release and use "master" if you're submitting changes to the latest development release.</p>
+<p>HTTPS Everywhere consists of a large number of rules for switching sites from HTTP to HTTPS. You can read more about how to write these rules <a href="/https-everywhere/rulesets">here</a>.</p>
+<p>If you want to create new rules to submit to us, we expect them to be in the src/chrome/content/rules directory. That directory also contains a useful script, make-trivial-rule, to create a simple rule for a specified domain. There is also a script called trivial-validate.py, to check all the pending rules for several common errors and oversights. For example, if you wanted to make a rule for the example.com domain, you could run</p>
+<pre>sh ./make-trivial-rule example.com</pre><p>
+inside the rules directory. This would create Example.com.xml, which you could then take a look at and edit based on your knowledge of any specific URLs at example.com that do or don't work in HTTPS. You could then run</p>
+<pre>python ../../../../utils/trivial-validate.py</pre><p>
+to make sure that your rule is free of common mistakes.</p>
+<p>To create a test package for installing with Firefox, you'll need a <a href="http://www.cygwin.com/">Cygwin</a> environment under Windows, or a Linux or Unix install. Simply run this from the https-everywhere.git toplevel directory:</p>
+<pre>sh ./makexpi.sh</pre><p>
+This should create an xpi file in ./pkg that you can install using a file:// url in Firefox.</p>
+<p>Similarly, to create a test package for Chrome, run:</p>
+<pre>sh ./makecrx.sh</pre><p>
+Once you've tested your changes, you can submit them for review via any of the following:</p>
+<ul><li>Email https-everywhere-rules@eff.org to tell us about your changes. You can either specify a remote repository or use the following command to create a patch file:<br /><pre type="_moz">git format-patch</pre></li>
+<li>Open a pull request at <a href="https://github.com/EFForg/https-everywhere">https://github.com/EFForg/https-everywhere</a>.</li>
+</ul><p><a name="git" id="git"></a></p>
+<h2>A quick HOWTO on working with Git</h2>
+<p>You may want to also look at the <a href="http://gitref.org/">Git Reference</a>, <a href="http://help.github.com/">GitHub Help Site</a> and the <a href="https://gitweb.torproject.org/githax.git/blob_plain/HEAD:/doc/Howto.txt">Tor Project's Git documentation</a> to fill in the gaps here, but the below should be enough to get the basics of the workflow down.</p>
+<p>First, tell git your name:</p>
+<pre>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</pre><p>
+Then, get a copy of the 'origin' repository:</p>
+<pre>git clone git://git.torproject.org/https-everywhere.git
+cd https-everywhere</pre><p>
+Alternatively, if you already have a Github account, you can create a "fork" of the repository on Github at <a href="https://github.com/EFForg/https-everywhere">https://github.com/EFForg/https-everywhere</a>. See <a href="https://help.github.com/articles/fork-a-repo">this page</a> for a tutorial.</p>
+<p>Once you have a local copy of the repository, create a new branch for your changes and check it out:</p>
+<pre>git checkout -b my-new-rules &lt;starting branch&gt;</pre><p>
+where &lt;starting branch&gt; is "3.0" if you want to modify the latest stable release and "master" if you want to modify the latest development release.</p>
+<p>When you want to send us your work, you'll need to add any new files to the index with git add:</p>
+<pre>git add ./src/chrome/content/rules/MyRule1.xml
+git add ./src/chrome/content/rules/MyRule2.xml</pre><p>
+You can now commit your changes to the local branch. To make things easier, you should commit each xml file individually:</p>
+<pre>git commit ./src/chrome/content/rules/MyRule1.xml
+git commit ./src/chrome/content/rules/MyRule2.xml</pre><p>
+Now, you need a place to publish your changes. You can create a free github account here: <a href="https://github.com/signup/free" title="https://github.com/signup/free">https://github.com/signup/free</a>. <a href="http://help.github.com/" title="http://help.github.com/">http://help.github.com/</a> describes the account creation process and some other github-specific things.</p>
+<p>Once you have created your account and added your remote in your local checkout, you want to push your branch to your github remote:</p>
+<pre>git push github my-new-rules:my-new-rules</pre><p>
+Periodically, you should re-fetch the master repository:</p>
+<pre>git pull master</pre>
+</body>
+</html>
